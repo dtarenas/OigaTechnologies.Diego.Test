@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<main id="main">
+    <!-- ======= Resume Section ======= -->
+    <section id="search" class="contact">
+        <div class="container" data-aos="fade-up">
+
+            <div class="section-title">
+                <h2>Search</h2>
+                <p>Use the follow field to get a result</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4">
+                    <h3 class="resume-title">Form</h3>
+                    <div class="resume-item pb-0">
+                        <form role="form" class="php-email-form" id="form-search">
+                            <div class="row">
+                                <div class="col-md-12 form-group">
+                                    <input type="text" name="name" class="form-control" id="query" placeholder="Your query" required>
+                                </div>
+                            </div>
+                            <div class="text-block"><button type="submit">Send Message</button></div>
+                        </form>
+
+                    </div>
+
+
+                </div>
+                <div class="col-lg-8">
+                    <div class="render-result">
+                        <i class='bx bxs-face bx-flip-horizontal bx-lg'></i>
+                    </div>
+
+
+                </div>
+            </div>
+
+        </div>
+    </section><!-- End Resume Section -->
+
+</main><!-- End #main -->
+
+<script>
+    const gatewayApiBaseAddress = "https://localhost:44360/gateway";
+    const $searchform = document.querySelector("#form-search");
+    const $queryInput = document.querySelector("#query");
+
+    $searchform.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = $queryInput.value;
+        getResult(query);
+    });
+
+     $queryInput.addEventListener('keyup', (e) => {
+         e.preventDefault();
+         const currentQuery = e.target.value;
+         if(currentQuery.replace(/[^\w\s]+/g, '')){
+            getResult(currentQuery);
+         }
+    });
+
+    function getResult(query){
+        const searchEnpoint = `${gatewayApiBaseAddress}/search?q=${query}`;
+        const $renderResult = document.querySelector(".render-result");
+        $renderResult.innerHTML = "<i class='bx bx-loader-circle bx-spin bx-lg' ></i><br><span class='text-lead'>Searching, please wait...</span> ";
+
+        const searchRequest = fetch(searchEnpoint);
+        searchRequest
+            .then(searchResponse => {
+                if(searchResponse.ok){
+                    $renderResult.innerHTML = '';
+                    $renderResult.innerHTML = '<div class="alert alert-success" role="alert">Exists</div>'
+                    return searchResponse.json();
+                }else if (searchResponse.status = 404){
+                    $renderResult.innerHTML = '<h3 class="resume-title">Results not found</h3>'
+                }
+            })
+            .then(result => {
+                if(result){
+                    $renderResult.innerHTML += '<br>';
+                    $renderResult.innerHTML += renderResultsTable(result);
+                }
+            });
+    }
+
+    function renderResultsTable(usersObj){
+        const tableBody = usersObj.reduce((acc, curr) => {
+            return acc += `<tr>
+                      <th scope="row">${curr.userId}</th>
+                      <td>${curr.fullname}</td>
+                      <td>${curr.username}</td>
+                    </tr>`;
+
+        }, '');
+
+        return `<table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">UserID</th>
+                      <th scope="col">Full Name</th>
+                      <th scope="col">Username</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                   ${tableBody}
+                  </tbody>
+                </table>`;
+    }
+</script>
